@@ -1,0 +1,54 @@
+# See https://pre-commit.com for more information
+# To install: pre-commit install --hook-type pre-commit --hook-type pre-push
+# To update: pre-commit autoupdate
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-yaml
+      - id: check-json
+      - id: check-toml
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      - id: detect-private-key
+
+  # Notebooks - strip outputs before commit
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.8.1
+    hooks:
+      - id: nbstripout
+
+  # Python - Ruff (fast linter + formatter)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.12.8
+    hooks:
+      - id: ruff-check
+        types_or: [python, pyi]
+        args: [--fix]
+      - id: ruff-format
+        types_or: [python, pyi]
+
+  # Insert BSD-3-Clause license header into every Python source file
+  - repo: https://github.com/Lucas-C/pre-commit-hooks
+    rev: v1.5.5
+    hooks:
+      - id: insert-license
+        name: insert license header (python)
+        types_or: [python, pyi]
+        args:
+          - --license-filepath=.license-header.txt
+          - --comment-style=#
+      - id: insert-license
+        name: insert license header (shell)
+        types: [shell]
+        args:
+          - --license-filepath=.license-header.txt
+          - --comment-style=#
+          - --insert-license-after-regex=^#!.*$

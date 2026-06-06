@@ -1,0 +1,148 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "coreai-torch"
+dynamic = ["version"]
+description = "Convert PyTorch models to CoreAI format"
+readme = "README.md"
+license = { file = "LICENSE" }
+classifiers = [
+    "License :: OSI Approved :: BSD License",
+]
+requires-python = ">=3.11"
+dependencies = [
+    "coreai-core==1.0.0b1",
+    "ml-dtypes",
+    "networkx",
+    "numpy",
+    "packaging",
+    "scipy",
+    "sympy",
+    "torch>=2.8.0,<=2.11.0",
+    "typing-extensions",
+    "strenum",
+    "rich>=13.0,<16.0",
+]
+
+[project.optional-dependencies]
+test = [
+    "coremltools",
+    "filecheck",
+    "mlx; sys_platform == 'darwin'",
+    "mlx_lm; sys_platform == 'darwin'",
+    "pytest",
+    "pytest-asyncio",
+    "pytest-randomly",
+    "pytest-rerunfailures",
+    "pytest-sugar",
+    "pytest-xdist",
+    "torchaudio",
+    "torchvision",
+    "transformers==4.57.3",
+]
+docs = [
+    "sphinx>=7.0",
+    "shibuya==2026.5.19",
+    "myst-nb>=1.0",
+    "nbmake>=1.5.0",
+    "ghp-import>=2.1.0",
+    "nest-asyncio>=1.5.0",
+]
+dev = [
+    "deptry>=0.20",
+    "nbstripout",
+    "pre-commit>=4.0",
+    "ruff>=0.12.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/apple/coreai-torch"
+Repository = "https://github.com/apple/coreai-torch"
+Issues = "https://github.com/apple/coreai-torch/issues"
+
+[tool.setuptools.dynamic]
+version = {attr = "coreai_torch.__version__.__version__"}
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["coreai_torch*"]
+exclude = ["tests*"]
+
+[tool.setuptools.package-data]
+coreai_torch = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"
+addopts = [
+    "--tb=short",
+    "--ff",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "dsl: marks Metal DSL kernel tests (macOS only)",
+    "composite: marks composite operation tests (require MLX + transformers)",
+    "compression: marks compression/quantization tests",
+    "ops: marks core operator tests",
+    "ir: marks tests that verify CoreAI IR output via filecheck",
+]
+
+[tool.ruff]
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+ignore = ["E501"]  # Line length is handled by the formatter
+# Note: PLR, PLC, C90, D, EM, T20 rules are referenced in noqa comments
+# across the codebase. Enable them incrementally in follow-up PRs.
+
+[tool.ruff.lint.isort]
+known-first-party = ["coreai_torch"]
+
+[tool.deptry]
+# `coreai_torch` is the project itself, and `tests` is the test package —
+# silence self-imports flagged as transitive / missing.
+known_first_party = ["coreai_torch", "tests"]
+# Map distribution names to the import names they provide.
+package_module_name_map = { "coreai-core" = "coreai" }
+# Override the default exclude list (which includes "tests") so deptry sees
+# test imports — otherwise every `[test]` extra is flagged DEP002 unused.
+exclude = ["venv", ".venv", ".direnv", ".eggs", ".git", "setup.py", "__pycache__", "build", "dist", "docs"]
+
+[tool.deptry.per_rule_ignores]
+# Genuinely declared-but-unimported entries — listed explicitly so a future
+# bad runtime dep added to [project.dependencies] is still caught:
+#   scipy           — platform-pinned (darwin py<3.11) to constrain the resolver.
+#   torchaudio, torchvision
+#                   — pulled by transformers/test fixtures transitively; no direct import.
+#   pytest-{randomly,rerunfailures,sugar,xdist}
+#                   — pytest plugins, auto-loaded via entry points (never imported).
+#   sphinx, shibuya, myst-nb, nbmake, nest-asyncio, ghp-import
+#                   — docs build infra used in docs/ (not scanned).
+#   ruff, deptry, nbstripout, pre-commit
+#                   — dev tools invoked via CLI, never imported.
+DEP002 = [
+    "scipy",
+    "torchaudio",
+    "torchvision",
+    "pytest-randomly",
+    "pytest-rerunfailures",
+    "pytest-sugar",
+    "pytest-xdist",
+    "pytest-asyncio",
+    "sphinx",
+    "shibuya",
+    "myst-nb",
+    "nbmake",
+    "nest-asyncio",
+    "ghp-import",
+    "ruff",
+    "deptry",
+    "nbstripout",
+    "pre-commit",
+]

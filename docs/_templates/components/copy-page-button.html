@@ -1,0 +1,58 @@
+{#-
+  Override of shibuya/components/copy-page-button.html. The stock template
+  routes "Copy page" / "View Source" at the GitHub source file. We route:
+
+  * "Copy page" at the sphinx-llm <basename>.html.md output (when present),
+    so it yields clean rendered Markdown for every page including .ipynb
+    guides. Falls back to a file:// guard alert if the .html.md is missing.
+  * "View as Markdown" at the Sphinx-native _sources/<sourcename> for
+    text-based sources (.md/.rst), which Sphinx always copies during the
+    build. For .ipynb sources the raw _sources copy is notebook JSON, so
+    we fall back to the sphinx-llm rendered <basename>.html.md instead.
+
+  The Markdown icon is loaded from _static/icons/ instead of <iconify-icon>
+  so it renders without a network fetch to api.iconify.design (which is
+  blocked on some deployments). Copy feedback and the file:// guard live in
+  _static/copy-page-button.js.
+-#}
+
+{%- set _show_ai_links = theme_show_ai_links and not (meta and meta.hide_ai_links) -%}
+{%- set _md_url = pagename.rsplit('/', 1)[-1] ~ '.html.md' -%}
+{%- set _view_md_url = _md_url if '.ipynb' in sourcename else pathto('_sources/' ~ sourcename, 1) -%}
+
+{%- if _show_ai_links -%}
+<div class="copy-page-wrapper relative pb-4 lg:absolute lg:top-8 lg:right-6 xl:right-12">
+  <div id="copy-page-trigger">
+    <button
+      type="button"
+      class="js-copy px-3 py-1 inline-flex items-center gap-1"
+      data-url="{{ _md_url }}"
+    >
+      <i class="i-lucide" data-icon="copy"></i>
+      <span>{{ _('Copy page') }}</span>
+    </button>
+    <button class="js-menu px-2 py-1" type="button" aria-label="{{ _('More actions') }}"
+      aria-haspopup="menu" aria-expanded="false" aria-controls="copy-page-content">
+      <i class="i-lucide chevron-down"></i>
+    </button>
+  </div>
+  <div id="copy-page-content" role="menu" aria-orientation="vertical" aria-hidden="true">
+    <div role="presentation">
+      <div class="flex flex-col" role="group">
+        <button class="js-copy" type="button" role="menuitem" data-url="{{ _md_url }}">
+          <span class="iconify-icon">
+            <i class="i-lucide" data-icon="copy"></i>
+          </span>
+          <span>{{ _('Copy page') }}</span>
+        </button>
+        <a role="menuitem" href="{{ _view_md_url }}" target="_blank" rel="nofollow">
+          <span class="iconify-icon">
+            <img src="{{ pathto('_static/icons/markdown.svg', 1) }}" alt="" width="14" height="14">
+          </span>
+          <span>{{ _('View as Markdown') }}</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{%- endif -%}

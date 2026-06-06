@@ -1,0 +1,5 @@
+# coreai-torch — CODEOWNERS
+#
+# Branch protection and required reviewers are configured at the org level.
+
+* @apple/coreai-torch-maintainers

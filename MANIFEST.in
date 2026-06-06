@@ -1,0 +1,6 @@
+include LICENSE
+include README.md
+include pyproject.toml
+recursive-include coreai_torch *.py py.typed
+global-exclude __pycache__
+global-exclude *.py[co]
